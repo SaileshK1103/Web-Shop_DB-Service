@@ -1,6 +1,7 @@
 package com.webshop.repository;
 
 import com.webshop.entity.Order;
+import com.webshop.entity.OrderStatus;
 import java.util.List;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,4 +20,8 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     @EntityGraph(attributePaths = {"customer", "shippingAddress", "orderItems", "orderItems.product"})
     List<Order> findByCustomerId(Integer customerId);
+
+    // Uses the index idx_orders_status_order_date
+    @EntityGraph(attributePaths = {"customer", "shippingAddress", "orderItems", "orderItems.product"})
+    List<Order> findByStatus(OrderStatus status);
 }
