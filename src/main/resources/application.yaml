@@ -8,8 +8,7 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      # The schema is owned by the SQL scripts in resources/sql; Hibernate only checks the entities against it.
-      ddl-auto: validate
+      ddl-auto: update
       naming:
         # Keep table names exactly as written in @Table (Spring's default would turn ProductCategories into product_categories).
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
