@@ -9,6 +9,71 @@ A RESTful backend service built with Java, Spring Boot, and MariaDB demonstratin
 - `entity`: Database table entity mappings
 - `dto`: Request and response data structures
 - `mappers`: Entity-DTO mappers
+- `exception`: Domain exceptions and the global error handler
+
+## API
+
+All request and response bodies are JSON.
+
+### Errors
+Every error is returned as an RFC 7807 problem document (`application/problem+json`):
+
+```json
+{
+  "type": "about:blank",
+  "title": "Not Found",
+  "status": 404,
+  "detail": "Category with id 42 was not found",
+  "instance": "/api/categories/42"
+}
+```
+
+| Status | When |
+|---|---|
+| `400 Bad Request` | Malformed JSON, a path id that is not a number, or a body that fails validation |
+| `404 Not Found` | The requested resource does not exist |
+| `409 Conflict` | The request is valid but cannot be carried out in the current state |
+
+Validation failures add an `errors` object with one message per rejected field:
+
+```json
+{
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Invalid request content.",
+  "errors": { "name": "must not be blank" }
+}
+```
+
+### Categories
+Product categories of the shop.
+
+| Method | Path | Purpose | Success | Errors |
+|---|---|---|---|---|
+| `GET` | `/api/categories` | List all categories, sorted by name | `200` with an array of categories | - |
+| `GET` | `/api/categories/{id}` | Get one category | `200` with the category | `404` |
+| `POST` | `/api/categories` | Create a category | `201` with the category and a `Location` header | `400` |
+| `PUT` | `/api/categories/{id}` | Replace the name and description | `200` with the category | `400`, `404` |
+| `DELETE` | `/api/categories/{id}` | Delete a category | `204` without a body | `404`, `409` if the category still has products |
+
+Request body (`POST`, `PUT`):
+
+| Field | Type | Rules |
+|---|---|---|
+| `name` | string | required, not blank, at most 100 characters |
+| `description` | string | optional |
+
+```json
+{ "name": "Books", "description": "Printed and digital books" }
+```
+
+Response body:
+
+```json
+{ "id": 1, "name": "Books", "description": "Printed and digital books" }
+```
+
+Deleting a category never deletes its products: the request is rejected with `409` until the products are moved or removed.
 
 ## Running locally
 1. Create the database and load the schema:
