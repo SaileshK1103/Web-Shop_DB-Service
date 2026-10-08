@@ -10,5 +10,4 @@ spring:
     hibernate:
       ddl-auto: update
       naming:
-        # Keep table names exactly as written in @Table (Spring's default would turn ProductCategories into product_categories).
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl

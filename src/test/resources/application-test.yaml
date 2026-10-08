@@ -7,4 +7,5 @@ spring:
   sql:
     init:
       mode: always
+      # views.sql, triggers.sql and temporal.sql are MariaDB only and are not run in the tests
       schema-locations: classpath:sql/schema_no_data_clean.sql, classpath:sql/indexes.sql
