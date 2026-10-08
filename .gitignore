@@ -14,3 +14,8 @@ logs/
 .DS_Store
 Thumbs.db
 *.env
+
+IMPLEMENTATION.md
+CLAUDE.md
+TASK.md
+CLEAN_CODE_GUIDE.md
