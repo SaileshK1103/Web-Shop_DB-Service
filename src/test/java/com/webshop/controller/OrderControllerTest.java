@@ -54,7 +54,7 @@ class OrderControllerTest {
                                 """.formatted(customer.getId(), address.getId(), book.getId(), toy.getId())))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").isNumber())
-                .andExpect(jsonPath("$.status").value("NEW"))
+                .andExpect(jsonPath("$.status").value("PENDING"))
                 .andExpect(jsonPath("$.orderDate").exists())
                 .andExpect(jsonPath("$.deliveryDate").doesNotExist())
                 .andExpect(jsonPath("$.customer.id").value(customer.getId()))
@@ -234,17 +234,17 @@ class OrderControllerTest {
     }
 
     @Test
-    void statusCanMoveFromNewToPaidToShipped() throws Exception {
+    void statusCanMoveFromPendingToConfirmedToShipped() throws Exception {
         int orderId = placeOrder(saveCustomer("ada@example.com"), saveProduct("Clean Code", "39.90", 10), 1);
 
-        changeStatus(orderId, "PAID").andExpect(status().isOk()).andExpect(jsonPath("$.status").value("PAID"));
+        changeStatus(orderId, "CONFIRMED").andExpect(status().isOk()).andExpect(jsonPath("$.status").value("CONFIRMED"));
         changeStatus(orderId, "SHIPPED").andExpect(status().isOk()).andExpect(jsonPath("$.status").value("SHIPPED"));
     }
 
     @Test
     void deliveringAnOrderSetsTheDeliveryDate() throws Exception {
         int orderId = placeOrder(saveCustomer("ada@example.com"), saveProduct("Clean Code", "39.90", 10), 1);
-        changeStatus(orderId, "PAID");
+        changeStatus(orderId, "CONFIRMED");
         changeStatus(orderId, "SHIPPED");
 
         changeStatus(orderId, "DELIVERED")
@@ -275,7 +275,7 @@ class OrderControllerTest {
     @Test
     void shippedOrderCannotBeCancelled() throws Exception {
         int orderId = placeOrder(saveCustomer("ada@example.com"), saveProduct("Clean Code", "39.90", 10), 1);
-        changeStatus(orderId, "PAID");
+        changeStatus(orderId, "CONFIRMED");
         changeStatus(orderId, "SHIPPED");
 
         changeStatus(orderId, "CANCELLED").andExpect(status().isConflict());
@@ -286,7 +286,7 @@ class OrderControllerTest {
         int orderId = placeOrder(saveCustomer("ada@example.com"), saveProduct("Clean Code", "39.90", 10), 1);
         changeStatus(orderId, "CANCELLED");
 
-        changeStatus(orderId, "PAID").andExpect(status().isConflict());
+        changeStatus(orderId, "CONFIRMED").andExpect(status().isConflict());
     }
 
     @Test
@@ -298,7 +298,7 @@ class OrderControllerTest {
 
     @Test
     void changingStatusOfUnknownOrderReturnsNotFound() throws Exception {
-        changeStatus(UNKNOWN_ID, "PAID").andExpect(status().isNotFound());
+        changeStatus(UNKNOWN_ID, "CONFIRMED").andExpect(status().isNotFound());
     }
 
     private org.springframework.test.web.servlet.ResultActions changeStatus(int orderId, String status) throws Exception {
