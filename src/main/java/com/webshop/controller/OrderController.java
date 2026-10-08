@@ -43,6 +43,13 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    // update the status to the next based on current order status
+    @PutMapping("/{id}/update-status")
+    public OrderResponse updateStatus(@PathVariable Integer id) {
+        return orderService.updateStatus(id);
+    }
+
+    // explicitly set the order status
     @PutMapping("/{id}/status")
     public OrderResponse changeStatus(@PathVariable Integer id, @Valid @RequestBody OrderStatusRequest request) {
         return orderService.changeStatus(id, request.status());
