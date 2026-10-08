@@ -222,15 +222,48 @@ class OrderControllerTest {
     }
 
     @Test
-    void listFiltersByCustomer() throws Exception {
+    void customerOrdersReturnsOnlyTheOrdersOfThatCustomer() throws Exception {
         Product book = saveProduct("Clean Code", "39.90", 10);
         Customer ada = saveCustomer("ada@example.com");
         int orderOfAda = placeOrder(ada, book, 1);
         placeOrder(saveCustomer("grace@example.com"), book, 1);
 
-        mockMvc.perform(get("/api/orders").param("customerId", ada.getId().toString()))
+        mockMvc.perform(get("/api/orders/customer/{id}", ada.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].id").value(contains(orderOfAda)));
+    }
+
+    @Test
+    void customerOrdersOfCustomerWithoutOrdersReturnsEmptyList() throws Exception {
+        Customer customer = saveCustomer("ada@example.com");
+
+        mockMvc.perform(get("/api/orders/customer/{id}", customer.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    void customerOrdersOfUnknownCustomerReturnsNotFound() throws Exception {
+        mockMvc.perform(get("/api/orders/customer/{id}", UNKNOWN_ID))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void listFiltersByStatus() throws Exception {
+        Product book = saveProduct("Clean Code", "39.90", 10);
+        int pendingOrder = placeOrder(saveCustomer("ada@example.com"), book, 1);
+        int cancelledOrder = placeOrder(saveCustomer("grace@example.com"), book, 1);
+        changeStatus(cancelledOrder, "CANCELLED");
+
+        mockMvc.perform(get("/api/orders").param("status", "PENDING"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].id").value(contains(pendingOrder)));
+    }
+
+    @Test
+    void listWithUnknownStatusReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/orders").param("status", "LOST"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
