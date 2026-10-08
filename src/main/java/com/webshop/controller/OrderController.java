@@ -3,6 +3,7 @@ package com.webshop.controller;
 import com.webshop.dto.OrderRequest;
 import com.webshop.dto.OrderResponse;
 import com.webshop.dto.OrderStatusRequest;
+import com.webshop.entity.OrderStatus;
 import com.webshop.service.OrderService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -28,8 +29,13 @@ public class OrderController {
     }
 
     @GetMapping
-    public List<OrderResponse> getAllOrders(@RequestParam(required = false) Integer customerId) {
-        return orderService.search(customerId);
+    public List<OrderResponse> getAllOrders(@RequestParam(required = false) OrderStatus status) {
+        return orderService.search(status);
+    }
+
+    @GetMapping("/customer/{id}")
+    public List<OrderResponse> getAllCustomerOrders(@PathVariable Integer id) {
+        return orderService.findAllOrdersByCustomerId(id);
     }
 
     @GetMapping("/{id}")

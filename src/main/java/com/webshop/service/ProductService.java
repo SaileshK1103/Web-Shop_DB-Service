@@ -14,6 +14,7 @@ import com.webshop.repository.ProductCategoryRepository;
 import com.webshop.repository.ProductRepository;
 import com.webshop.repository.SupplierRepository;
 import com.webshop.Utils;
+import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,8 +44,8 @@ public class ProductService {
     }
 
 
-    public List<ProductResponse> search(String name) {
-        return findProducts(name).stream()
+    public List<ProductResponse> search(String name, BigDecimal minPrice, BigDecimal maxPrice) {
+        return findProducts(name, minPrice, maxPrice).stream()
                 .map(productMapper::toResponse)
                 .toList();
     }
@@ -77,12 +78,23 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    // Find product by product name
-    private List<Product> findProducts(String name) {
-        if (Utils.isNonEmptyString(name)) {
-            return productRepository.findByNameContainingIgnoreCase(name.strip());
+    // Product filter uses default values if no filters so all products are returned
+    private List<Product> findProducts(String queryName, BigDecimal queryMinPrice, BigDecimal queryMaxPrice) {
+        // if null return all products
+        if (queryName.isEmpty() && queryMinPrice == null && queryMaxPrice == null) {
+            return productRepository.findAll();
         }
-        return productRepository.findAll();
+
+        String name = Utils.isNonEmptyString(queryName) ? queryName.strip() : "";
+        BigDecimal minPrice = queryMinPrice != null ? queryMinPrice : BigDecimal.ZERO;
+        BigDecimal maxPrice = queryMaxPrice != null ? queryMaxPrice : new BigDecimal("99999999.99");
+
+        if (Utils.isGreater(minPrice, maxPrice)) {
+            throw new BadRequestException(
+                    "minPrice must be less than maxPrice");
+        }
+
+        return productRepository.findByNameStartingWithAndPriceBetween(name, minPrice, maxPrice);
     }
 
     private Product getProduct(Integer id) {

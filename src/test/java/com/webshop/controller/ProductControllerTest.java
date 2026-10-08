@@ -142,13 +142,64 @@ class ProductControllerTest {
     }
 
     @Test
-    void listFiltersByNameIgnoringCase() throws Exception {
+    void listFiltersByTheStartOfTheNameIgnoringCase() throws Exception {
         saveProduct("Clean Code", "39.90", null);
         saveProduct("Refactoring", "45.00", null);
+        saveProduct("The Clean Coder", "35.00", null);
 
         mockMvc.perform(get("/api/products").param("name", "clean"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].name").value(contains("Clean Code")));
+    }
+
+    @Test
+    void listFiltersByMinimumPrice() throws Exception {
+        saveProduct("Teddy Bear", "15.00", null);
+        saveProduct("Clean Code", "39.90", null);
+        saveProduct("Refactoring", "45.00", null);
+
+        mockMvc.perform(get("/api/products").param("minPrice", "39.90"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].name").value(containsInAnyOrder("Clean Code", "Refactoring")));
+    }
+
+    @Test
+    void listFiltersByMaximumPrice() throws Exception {
+        saveProduct("Teddy Bear", "15.00", null);
+        saveProduct("Clean Code", "39.90", null);
+        saveProduct("Refactoring", "45.00", null);
+
+        mockMvc.perform(get("/api/products").param("maxPrice", "39.90"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].name").value(containsInAnyOrder("Teddy Bear", "Clean Code")));
+    }
+
+    @Test
+    void listFiltersByPriceRange() throws Exception {
+        saveProduct("Teddy Bear", "15.00", null);
+        saveProduct("Clean Code", "39.90", null);
+        saveProduct("Refactoring", "45.00", null);
+
+        mockMvc.perform(get("/api/products").param("minPrice", "20").param("maxPrice", "40"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].name").value(contains("Clean Code")));
+    }
+
+    @Test
+    void listFiltersByNameAndPriceTogether() throws Exception {
+        saveProduct("Clean Code", "39.90", null);
+        saveProduct("Clean Architecture", "55.00", null);
+        saveProduct("Refactoring", "45.00", null);
+
+        mockMvc.perform(get("/api/products").param("name", "Clean").param("minPrice", "50"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].name").value(contains("Clean Architecture")));
+    }
+
+    @Test
+    void listWithMinimumPriceAboveMaximumPriceReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/products").param("minPrice", "50").param("maxPrice", "10"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
