@@ -67,4 +67,9 @@ public class OrderItem {
     public void setUnitPrice(BigDecimal unitPrice) {
         this.unitPrice = unitPrice;
     }
+
+    // Uses the unit price stored on the order item, not the current price of the product
+    public BigDecimal getLineTotal() {
+        return unitPrice.multiply(BigDecimal.valueOf(quantity));
+    }
 }
