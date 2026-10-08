@@ -81,7 +81,7 @@ public class ProductService {
     // Product filter uses default values if no filters so all products are returned
     private List<Product> findProducts(String queryName, BigDecimal queryMinPrice, BigDecimal queryMaxPrice) {
         // if null return all products
-        if (queryName.isEmpty() && queryMinPrice == null && queryMaxPrice == null) {
+        if (!Utils.isNonEmptyString(queryName) && queryMinPrice == null && queryMaxPrice == null) {
             return productRepository.findAll();
         }
 
