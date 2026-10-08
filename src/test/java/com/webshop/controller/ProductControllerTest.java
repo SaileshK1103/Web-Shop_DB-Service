@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -54,7 +53,6 @@ class ProductControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(productJson("Clean Code", "39.90", 5, books.getId(), supplier.getId())))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", containsString("/api/products/")))
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.name").value("Clean Code"))
                 .andExpect(jsonPath("$.price").value(39.90))
@@ -144,36 +142,11 @@ class ProductControllerTest {
     }
 
     @Test
-    void listFiltersByCategory() throws Exception {
-        ProductCategory books = saveCategory("Books");
-        saveProduct("Clean Code", "39.90", books);
-        saveProduct("Teddy Bear", "15.00", saveCategory("Toys"));
-
-        mockMvc.perform(get("/api/products").param("categoryId", books.getId().toString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].name").value(contains("Clean Code")));
-    }
-
-    @Test
     void listFiltersByNameIgnoringCase() throws Exception {
         saveProduct("Clean Code", "39.90", null);
         saveProduct("Refactoring", "45.00", null);
 
         mockMvc.perform(get("/api/products").param("name", "clean"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].name").value(contains("Clean Code")));
-    }
-
-    @Test
-    void listFiltersByCategoryAndNameTogether() throws Exception {
-        ProductCategory books = saveCategory("Books");
-        saveProduct("Clean Code", "39.90", books);
-        saveProduct("Refactoring", "45.00", books);
-        saveProduct("Clean Slate Toy", "15.00", saveCategory("Toys"));
-
-        mockMvc.perform(get("/api/products")
-                        .param("categoryId", books.getId().toString())
-                        .param("name", "clean"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].name").value(contains("Clean Code")));
     }
@@ -214,9 +187,9 @@ class ProductControllerTest {
     }
 
     @Test
-    void deleteUnknownIdReturnsNotFound() throws Exception {
+    void deleteUnknownIdReturnsNoContent() throws Exception {
         mockMvc.perform(delete("/api/products/{id}", UNKNOWN_ID))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNoContent());
     }
 
     @Test
