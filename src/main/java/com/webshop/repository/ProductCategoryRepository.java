@@ -1,0 +1,8 @@
+package com.webshop.repository;
+
+import com.webshop.entity.ProductCategory;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ProductCategoryRepository extends JpaRepository<ProductCategory, Integer> {
+    boolean existsByCategoryId(Integer categoryId);
+}

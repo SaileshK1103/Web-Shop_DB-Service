@@ -18,7 +18,7 @@ public class ProductCategory {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "category")
     private List<Product> products = new ArrayList<>();
 
     public ProductCategory() {}
