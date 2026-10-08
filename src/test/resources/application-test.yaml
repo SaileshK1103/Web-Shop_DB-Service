@@ -1,9 +1,10 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:webshop;MODE=MariaDB;DB_CLOSE_DELAY=-1
+    # IGNORECASE makes text comparisons ignore case, like the default collation of MariaDB does
+    url: jdbc:h2:mem:webshop;MODE=MariaDB;DB_CLOSE_DELAY=-1;IGNORECASE=TRUE
     username: sa
     password:
   sql:
     init:
       mode: always
-      schema-locations: classpath:sql/schema_no_data_clean.sql
+      schema-locations: classpath:sql/schema_no_data_clean.sql, classpath:sql/indexes.sql
