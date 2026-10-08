@@ -47,8 +47,17 @@ public class OrderService {
         this.orderMapper = orderMapper;
     }
 
-    public List<OrderResponse> search(Integer customerId) {
-        return findOrders(customerId).stream()
+    public List<OrderResponse> search(OrderStatus status) {
+        return findOrders(status).stream()
+                .map(orderMapper::toResponse)
+                .toList();
+    }
+
+    public List<OrderResponse> findAllOrdersByCustomerId(Integer customerId) {
+        if (!customerRepository.existsById(customerId)) {
+            throw new ResourceNotFoundException("Customer", customerId);
+        }
+        return orderRepository.findByCustomerId(customerId).stream()
                 .map(orderMapper::toResponse)
                 .toList();
     }
@@ -100,9 +109,9 @@ public class OrderService {
     }
 
     // Find orders of one customer, or all orders when no customer is given
-    private List<Order> findOrders(Integer customerId) {
-        if (customerId != null) {
-            return orderRepository.findByCustomerId(customerId);
+    private List<Order> findOrders(OrderStatus status) {
+        if (status != null) {
+            return orderRepository.findByStatus(status);
         }
         return orderRepository.findAll();
     }
