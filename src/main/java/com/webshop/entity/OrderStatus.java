@@ -1,6 +1,6 @@
 package com.webshop.entity;
 
-// Life cycle of an order: NEW -> PAID -> SHIPPED -> DELIVERED. An order can be cancelled until it is shipped
+// Life cycle of an order: PENDING -> CONFIRMED -> SHIPPED -> DELIVERED.
 public enum OrderStatus {
     PENDING,
     CONFIRMED,
