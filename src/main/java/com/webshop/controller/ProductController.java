@@ -4,6 +4,7 @@ import com.webshop.dto.ProductRequest;
 import com.webshop.dto.ProductResponse;
 import com.webshop.service.ProductService;
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,8 +31,10 @@ public class ProductController {
 
     @GetMapping
     public List<ProductResponse> getProducts(
-            @RequestParam(required = false) String name) {
-        return productService.search(name);
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice) {
+        return productService.search(name, minPrice, maxPrice);
     }
 
     @GetMapping("/{id}")

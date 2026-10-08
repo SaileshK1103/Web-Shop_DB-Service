@@ -2,6 +2,7 @@ package com.webshop.repository;
 
 import com.webshop.entity.Product;
 import jakarta.persistence.LockModeType;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -25,8 +26,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Override
     List<Product> findAll();
 
-    // Use entity graph to load the category and supplier and avoid any lazy loading proxy errors
+    // Utilizes the index for faster lookup
     @EntityGraph(attributePaths = {"category", "supplier"})
-    List<Product> findByNameContainingIgnoreCase(String name);
+    List<Product> findByNameStartingWithAndPriceBetween(String name, BigDecimal minPrice, BigDecimal maxPrice);
 
 }
