@@ -54,7 +54,7 @@ class OrderControllerTest {
                                 """.formatted(customer.getId(), address.getId(), book.getId(), toy.getId())))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").isNumber())
-                .andExpect(jsonPath("$.status").value("PENDING"))
+                .andExpect(jsonPath("$.status").value("NEW"))
                 .andExpect(jsonPath("$.orderDate").exists())
                 .andExpect(jsonPath("$.deliveryDate").doesNotExist())
                 .andExpect(jsonPath("$.customer.id").value(customer.getId()))
@@ -255,7 +255,7 @@ class OrderControllerTest {
         int cancelledOrder = placeOrder(saveCustomer("grace@example.com"), book, 1);
         changeStatus(cancelledOrder, "CANCELLED");
 
-        mockMvc.perform(get("/api/orders").param("status", "PENDING"))
+        mockMvc.perform(get("/api/orders").param("status", "NEW"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].id").value(contains(pendingOrder)));
     }
@@ -267,9 +267,10 @@ class OrderControllerTest {
     }
 
     @Test
-    void statusCanMoveFromPendingToConfirmedToShipped() throws Exception {
+    void statusCanMoveFromNewToPendingToConfirmedToShipped() throws Exception {
         int orderId = placeOrder(saveCustomer("ada@example.com"), saveProduct("Clean Code", "39.90", 10), 1);
 
+        changeStatus(orderId, "PENDING").andExpect(status().isOk()).andExpect(jsonPath("$.status").value("PENDING"));
         changeStatus(orderId, "CONFIRMED").andExpect(status().isOk()).andExpect(jsonPath("$.status").value("CONFIRMED"));
         changeStatus(orderId, "SHIPPED").andExpect(status().isOk()).andExpect(jsonPath("$.status").value("SHIPPED"));
     }
@@ -277,6 +278,7 @@ class OrderControllerTest {
     @Test
     void deliveringAnOrderSetsTheDeliveryDate() throws Exception {
         int orderId = placeOrder(saveCustomer("ada@example.com"), saveProduct("Clean Code", "39.90", 10), 1);
+        changeStatus(orderId, "PENDING");
         changeStatus(orderId, "CONFIRMED");
         changeStatus(orderId, "SHIPPED");
 
@@ -308,6 +310,7 @@ class OrderControllerTest {
     @Test
     void shippedOrderCannotBeCancelled() throws Exception {
         int orderId = placeOrder(saveCustomer("ada@example.com"), saveProduct("Clean Code", "39.90", 10), 1);
+        changeStatus(orderId, "PENDING");
         changeStatus(orderId, "CONFIRMED");
         changeStatus(orderId, "SHIPPED");
 
