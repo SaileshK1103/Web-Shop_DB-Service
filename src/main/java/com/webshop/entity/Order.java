@@ -11,8 +11,7 @@ public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_id")
-    private Long orderId;
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
@@ -25,8 +24,8 @@ public class Order {
     @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate;
 
-    @Column(name = "total_amount", nullable = false)
-    private Double totalAmount;
+    @Column(name = "delivery_date")
+    private LocalDateTime deliveryDate;
 
     @Column(length = 50)
     private String status;
@@ -36,12 +35,12 @@ public class Order {
 
     public Order() {}
 
-    public Long getOrderId() {
-        return orderId;
+    public Integer getId() {
+        return id;
     }
 
-    public void setOrderId(Long orderId) {
-        this.orderId = orderId;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public Customer getCustomer() {
@@ -68,12 +67,12 @@ public class Order {
         this.orderDate = orderDate;
     }
 
-    public Double getTotalAmount() {
-        return totalAmount;
+    public LocalDateTime getDeliveryDate() {
+        return deliveryDate;
     }
 
-    public void setTotalAmount(Double totalAmount) {
-        this.totalAmount = totalAmount;
+    public void setDeliveryDate(LocalDateTime deliveryDate) {
+        this.deliveryDate = deliveryDate;
     }
 
     public String getStatus() {
