@@ -30,6 +30,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
     }
 
+    // Handle custom bad request exceptions and return HTTP 400
+    @ExceptionHandler(BadRequestException.class)
+    public ProblemDetail handleBadRequest(BadRequestException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
     // add a per field error message for validations
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(

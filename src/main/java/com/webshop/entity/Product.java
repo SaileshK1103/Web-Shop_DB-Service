@@ -27,8 +27,9 @@ public class Product {
     @JoinColumn(name = "category_id")
     private ProductCategory category;
 
-    @Column(name = "supplier_id")
-    private Integer supplierId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id")
+    private Supplier supplier;
 
     public Product() {}
 
@@ -57,6 +58,6 @@ public class Product {
     public ProductCategory getCategory() { return category; }
     public void setCategory(ProductCategory category) { this.category = category; }
 
-    public Integer getSupplierId() { return supplierId; }
-    public void setSupplierId(Integer supplierId) { this.supplierId = supplierId; }
+    public Supplier getSupplier() { return supplier; }
+    public void setSupplier(Supplier supplier) { this.supplier = supplier; }
 }
