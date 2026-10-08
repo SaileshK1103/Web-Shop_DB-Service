@@ -77,7 +77,7 @@ public class OrderService {
         order.setCustomer(customer);
         order.setShippingAddress(findShippingAddress(request.shippingAddressId(), customer.getId()));
         order.setOrderDate(LocalDateTime.now());
-        order.setStatus(OrderStatus.PENDING);
+        order.setStatus(OrderStatus.NEW);
         for (OrderItemRequest itemRequest : inProductIdOrder(request.items())) {
             order.getOrderItems().add(reserveItem(order, itemRequest));
         }
