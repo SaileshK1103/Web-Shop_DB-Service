@@ -22,7 +22,7 @@ The generated OpenAPI document is available at `/v3/api-docs` and the interactiv
 
 ### Errors
 
-Every error is returned as an RFC 7807 problem document (`application/problem+json`):
+Every error is returned as:
 
 ```json
 {
