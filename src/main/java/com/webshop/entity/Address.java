@@ -9,7 +9,7 @@ import jakarta.persistence.*;
 public abstract class Address {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.TABLE)
     private Integer id;
 
     @Column(name = "street_address", nullable = false, length = 255)
