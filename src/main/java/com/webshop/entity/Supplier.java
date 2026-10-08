@@ -29,6 +29,13 @@ public class Supplier {
 
     public Supplier() {}
 
+    public Supplier(String name, String contactName, String email, String phone) {
+        this.name = name;
+        this.contactName = contactName;
+        this.email = email;
+        this.phone = phone;
+    }
+
     public Integer getId() {
         return id;
     }

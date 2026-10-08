@@ -79,9 +79,8 @@ public class ProductService {
 
     // Find product by product name
     private List<Product> findProducts(String name) {
-        String cleanedName = name.strip();
-        if (Utils.isNonEmptyString(cleanedName)) {
-            return productRepository.findByNameContainingIgnoreCase(cleanedName);
+        if (Utils.isNonEmptyString(name)) {
+            return productRepository.findByNameContainingIgnoreCase(name.strip());
         }
         return productRepository.findAll();
     }

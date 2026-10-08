@@ -10,6 +10,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     boolean existsByCategoryId(Integer categoryId);
 
+    boolean existsBySupplierId(Integer supplierId);
+
     // Use entity graph to load the category and supplier and avoid any lazy loading proxy errors
     @EntityGraph(attributePaths = {"category", "supplier"})
     @Override
