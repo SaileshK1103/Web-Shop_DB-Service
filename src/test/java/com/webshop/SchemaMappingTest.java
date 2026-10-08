@@ -19,6 +19,6 @@ class SchemaMappingTest {
     // application starts and maps every entity. It no longer fails when an entity and the schema disagree.
     @Test
     void applicationStartsAndMapsAllEntities() {
-        assertThat(entityManagerFactory.getMetamodel().getEntities()).hasSize(9);
+        assertThat(entityManagerFactory.getMetamodel().getEntities()).hasSize(12);
     }
 }
