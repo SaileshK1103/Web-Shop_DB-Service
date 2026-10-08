@@ -7,6 +7,7 @@ import com.webshop.exception.ConflictException;
 import com.webshop.exception.ResourceNotFoundException;
 import com.webshop.mappers.CategoryMapper;
 import com.webshop.repository.ProductCategoryRepository;
+import com.webshop.repository.ProductRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,10 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class CategoryService {
 
     private final ProductCategoryRepository productCategoryRepository;
+    private final ProductRepository productRepository;
     private final CategoryMapper productCategoryMapper;
 
-    public CategoryService(ProductCategoryRepository productCategoryRepository, CategoryMapper productCategoryMapper) {
+    public CategoryService(
+            ProductCategoryRepository productCategoryRepository,
+            ProductRepository productRepository,
+            CategoryMapper productCategoryMapper) {
         this.productCategoryRepository = productCategoryRepository;
+        this.productRepository = productRepository;
         this.productCategoryMapper = productCategoryMapper;
     }
 
@@ -49,7 +55,7 @@ public class CategoryService {
     @Transactional
     public void delete(Integer id) {
         ProductCategory category = getCategory(id);
-        if (productCategoryRepository.existsByCategoryId(id)) {
+        if (productRepository.existsByCategoryId(id)) {
             // If the category has associated products, we cannot delete it
             throw new ConflictException(String.format("Category with id %d still has products and cannot be deleted", id));
         }

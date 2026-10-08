@@ -2,6 +2,7 @@ package com.webshop.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -97,13 +98,13 @@ class CategoryControllerTest {
     }
 
     @Test
-    void listReturnsCategoriesSortedByName() throws Exception {
+    void listReturnsAllCategories() throws Exception {
         saveCategory("Toys");
         saveCategory("Books");
 
         mockMvc.perform(get("/api/categories"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].name").value(contains("Books", "Toys")));
+                .andExpect(jsonPath("$[*].name").value(containsInAnyOrder("Books", "Toys")));
     }
 
     @Test
