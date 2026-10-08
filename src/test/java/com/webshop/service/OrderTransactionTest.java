@@ -60,12 +60,12 @@ class OrderTransactionTest {
                 customer.getId(), null, List.of(new OrderItemRequest(inStock.getId(), 1)))).id();
         Order readBeforeTheOtherChange = orderRepository.findById(orderId).orElseThrow();
 
-        orderService.changeStatus(orderId, OrderStatus.CONFIRMED);
+        orderService.changeStatus(orderId, OrderStatus.PENDING);
 
         readBeforeTheOtherChange.setStatus(OrderStatus.CANCELLED);
         assertThatThrownBy(() -> orderRepository.save(readBeforeTheOtherChange))
                 .isInstanceOf(ObjectOptimisticLockingFailureException.class);
-        assertThat(orderRepository.findById(orderId).orElseThrow().getStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        assertThat(orderRepository.findById(orderId).orElseThrow().getStatus()).isEqualTo(OrderStatus.PENDING);
     }
 
     @Test
