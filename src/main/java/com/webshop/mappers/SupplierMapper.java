@@ -25,7 +25,7 @@ public class SupplierMapper {
     }
 
     public Supplier toEntity(SupplierRequest request) {
-        return new Supplier(request.name(), request.contactName(), request.phone(), request.email());
+        return new Supplier(request.name(), request.contactName(), request.email(), request.phone());
     }
 
     public void updateEntity(Supplier supplier, SupplierRequest request) {
