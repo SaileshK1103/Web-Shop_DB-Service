@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "Orders")
@@ -27,16 +28,27 @@ public class Order {
     @Column(name = "delivery_date")
     private LocalDateTime deliveryDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 50)
-    private String status;
+    private OrderStatus status;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
+
+    // Optimistic lock: version added for optimistic locks
+    @Version
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private Integer version;
 
     public Order() {}
 
     public Integer getId() {
         return id;
+    }
+
+    public Integer getVersion() {
+        return version;
     }
 
     public void setId(Integer id) {
@@ -75,11 +87,11 @@ public class Order {
         this.deliveryDate = deliveryDate;
     }
 
-    public String getStatus() {
+    public OrderStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(OrderStatus status) {
         this.status = status;
     }
 
