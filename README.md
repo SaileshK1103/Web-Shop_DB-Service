@@ -421,7 +421,7 @@ unchanged. Unlike the status endpoint above it does not set `deliveryDate` when 
 
 - Placing an order runs in one database transaction: the order row, all order item rows and all stock changes are
   committed together. If one item fails (unknown product, not enough stock), the whole transaction is rolled back,
-  so no stock is taken and no order is stored. `OrderTransactionTest` checks this against the database.
+  so no stock is taken and no order is stored.
 - The product rows of an order are read with a pessimistic write lock (`SELECT ... FOR UPDATE`). Two orders placed at
   the same time for the last items in stock are handled one after the other, so the stock cannot go below zero.
 - The product rows are always locked in ascending product id order, so two orders that contain the same products
@@ -440,8 +440,8 @@ Read-only data that the database writes itself.
 | ------ | ---------------------------------------------- | --------------------------------------------- | -------------------------------------------- |
 | `GET`  | `/api/reports/orders/{orderId}/status-history` | Every status change of an order, oldest first | `200` with an array, empty if there are none |
 
-The rows come from the table `OrderStatusHistory`, which is written by the trigger on `Orders`. The first status of
-a new order is not logged, only changes:
+The rows come from the table `OrderStatusHistory`, which is written by an entity event when the status of an order
+changes (see "Entity events"). The first status of a new order is not logged, only changes:
 
 ```json
 [
@@ -502,8 +502,8 @@ Decisions behind the indexes:
   of the index inside the range. A missing `minPrice` or `maxPrice` is replaced by 0 or the largest possible price.
 - **One index per query.** When name and price are both given, MariaDB normally picks the one index it estimates to
   be more selective and checks the other condition on the rows it found.
-- **Not verified with `EXPLAIN` yet.** The script runs in the tests (on H2), but whether MariaDB chooses these indexes
-  has not been checked on a MariaDB instance. To check: `EXPLAIN SELECT * FROM Orders WHERE status = 'PENDING';` should
+- **Not verified with `EXPLAIN` yet.** Whether MariaDB chooses these indexes has not been checked on a MariaDB
+  instance. To check: `EXPLAIN SELECT * FROM Orders WHERE status = 'PENDING';` should
   show `idx_orders_status_order_date` in the `key` column, and
   `EXPLAIN SELECT * FROM Products WHERE name LIKE 'clean%';` should show `idx_product_name`. On a table with only a few rows MariaDB may still prefer
   a full scan.
@@ -534,9 +534,17 @@ three triggers. MariaDB only.
 | trigger `trg_products_check_stock_insert` | before insert on `Products`      | calls the procedure with the new stock                                               |
 | trigger `trg_products_check_stock_update` | before update on `Products`      | calls the procedure with the new stock                                               |
 
-The status history is written by the database, not by the application, so it also covers changes made directly with
-SQL. It is read through `GET /api/reports/orders/{orderId}/status-history`. The stock triggers guarantee the "no
-negative stock" rule for every way of changing the table, not only through the API.
+### Entity events
+
+The rules of the trigger script as JPA lifecycle events, so they run on any database.
+
+| Event                                   | Where                                   | What it does                                                                          |
+| --------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------- |
+| `@PostLoad`, `@PostPersist` on `Order`  | `OrderStatusHistoryListener`            | remembers the status the order has in the database                                    |
+| `@PostUpdate` on `Order`                | `OrderStatusHistoryListener`            | writes previous and new status to `OrderStatusHistory`, only when the status changed  |
+| `@PrePersist`, `@PreUpdate` on `Product` | `Product.rejectNegativeStock`           | throws "Stock quantity cannot be negative" for a negative stock                        |
+| `@PrePersist` on `Order`                | `Order.applyDefaults`                   | sets the order date and the status `NEW` when they are missing                        |
+| `@PrePersist`, `@PreUpdate`             | `Customer`, `Supplier` `normaliseEmail` | stores the email trimmed and in lower case                                            |
 
 ### Temporal data
 
@@ -548,15 +556,6 @@ so the price a product had at any time can be looked up.
 After this script other `ALTER TABLE` statements on `Products` are refused by MariaDB unless
 `SET system_versioning_alter_history = KEEP;` is run first in the same session.
 
-### What has been verified
-
-- `views.sql`, `triggers.sql` and `temporal.sql` are MariaDB only and have **not been run** yet, because no MariaDB
-  login was available while they were written. They are not run in the automated tests either.
-- The status history endpoint is tested with rows inserted by the test, because the trigger does not exist on H2.
-- To check on MariaDB: change the status of an order, then `SELECT * FROM OrderStatusHistory;` should show the change.
-  `UPDATE Products SET stock_quantity = -1 WHERE id = 1;` should fail with "Stock quantity cannot be negative".
-  Change a product price, then `SELECT * FROM ProductHistory WHERE product_id = 1;` should show two rows.
-
 ## Running locally
 
 1. Create the database and load the schema:
@@ -564,12 +563,10 @@ After this script other `ALTER TABLE` statements on `Products` are refused by Ma
    mariadb -u <user> -p -e "CREATE DATABASE webshop"
    mariadb -u <user> -p webshop < src/main/resources/sql/schema_no_data_clean.sql
    mariadb -u <user> -p webshop < src/main/resources/sql/indexes.sql
-   mariadb -u <user> -p webshop < src/main/resources/sql/triggers.sql
    mariadb -u <user> -p webshop < src/main/resources/sql/temporal.sql
    mariadb -u <user> -p webshop < src/main/resources/sql/views.sql
    ```
    Run them in this order: `views.sql` needs the versioned table from `temporal.sql`. Run `temporal.sql` only once.
-   `triggers.sql` needs the `mariadb` command line client because it uses `DELIMITER`.
 2. Set the connection settings as environment variables:
 
    | Variable      | Required | Default                                 |
@@ -580,7 +577,7 @@ After this script other `ALTER TABLE` statements on `Products` are refused by Ma
 
 3. Start the service with `mvn spring-boot:run`.
 
-The tables come from the SQL scripts in `src/main/resources/sql`. Hibernate runs with `ddl-auto: update`: on startup it adds what the entities need and the database lacks, and it never drops anything. With the given schema that is the table `hibernate_sequences` (see below) and the column `Orders.version` for the optimistic lock.
+The tables come from the SQL scripts in `src/main/resources/sql`. Hibernate runs with `ddl-auto: update`: on startup it adds what the entities need and the database lacks, and it never drops anything. With the given schema that is the table `hibernate_sequences` (see below), the table `OrderStatusHistory` and the column `Orders.version` for the optimistic lock.
 
 ### Address inheritance
 
@@ -590,4 +587,4 @@ This inheritance strategy cannot use `AUTO_INCREMENT` ids, so Hibernate takes ad
 
 ## Tests
 
-`mvn test` runs against an in-memory H2 database in MariaDB mode, created from the same schema and index scripts, so no database setup is needed. The view, trigger and temporal scripts are MariaDB only and are not run in the tests (see "What has been verified"). H2 is set to compare text without case (`IGNORECASE=TRUE`), like MariaDB's default collation does.
+Run the tests with `mvn test`. They use an in-memory H2 database, so no database setup is needed.

@@ -3,6 +3,7 @@ package com.webshop.entity;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Entity
 @Table(name = "Customers")
@@ -26,6 +27,14 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CustomerAddress> addresses = new ArrayList<>();
+
+    @PrePersist
+    @PreUpdate
+    void normaliseEmail() {
+        if (email != null) {
+            email = email.strip().toLowerCase(Locale.ROOT);
+        }
+    }
 
     public Customer() {}
 

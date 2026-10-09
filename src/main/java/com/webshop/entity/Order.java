@@ -1,5 +1,7 @@
 package com.webshop.entity;
 
+import com.webshop.converter.OrderStatusConverter;
+import com.webshop.listener.OrderStatusHistoryListener;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -8,6 +10,7 @@ import java.util.List;
 import org.hibernate.annotations.ColumnDefault;
 
 @Entity
+@EntityListeners(OrderStatusHistoryListener.class)
 @Table(name = "Orders")
 public class Order {
 
@@ -29,7 +32,7 @@ public class Order {
     @Column(name = "delivery_date")
     private LocalDateTime deliveryDate;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = OrderStatusConverter.class)
     @Column(length = 50)
     private OrderStatus status;
 
@@ -41,6 +44,16 @@ public class Order {
     @ColumnDefault("0")
     @Column(nullable = false)
     private Integer version;
+
+    // Status of the row in the database, set by OrderStatusHistoryListener to recognise a status change
+    @Transient
+    private OrderStatus storedStatus;
+
+    @PrePersist
+    void applyDefaults() {
+        if (orderDate == null) orderDate = LocalDateTime.now();
+        if (status == null) status = OrderStatus.NEW;
+    }
 
     public Order() {}
 
@@ -94,6 +107,14 @@ public class Order {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public OrderStatus getStoredStatus() {
+        return storedStatus;
+    }
+
+    public void setStoredStatus(OrderStatus storedStatus) {
+        this.storedStatus = storedStatus;
     }
 
     public List<OrderItem> getOrderItems() {
