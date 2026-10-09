@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.Immutable;
 
-// Read only table writes are done by triggers, so this entity is read only
+// Rows are written by OrderStatusHistoryListener, so this entity is read only
 @Entity
 @Immutable
 @Table(name = "OrderStatusHistory")
