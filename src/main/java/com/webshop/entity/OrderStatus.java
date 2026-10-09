@@ -2,12 +2,35 @@ package com.webshop.entity;
 
 // Life cycle of an order: PENDING -> CONFIRMED -> SHIPPED -> DELIVERED.
 public enum OrderStatus {
-    NEW,
-    PENDING,
-    CONFIRMED,
-    SHIPPED,
-    DELIVERED,
-    CANCELLED;
+    NEW("new"),
+    PENDING("pending"),
+    CONFIRMED("confirmed"),
+    SHIPPED("shipped"),
+    DELIVERED("delivered"),
+    CANCELLED("cancelled");
+
+    private final String value;
+
+    OrderStatus(String value) {
+        this.value = value;
+    }
+
+    public static OrderStatus fromString(String value) {
+        for (OrderStatus status : OrderStatus.values()) {
+            if (status.value.equalsIgnoreCase(value)) {
+                return status;
+            }
+        }
+
+        throw new IllegalArgumentException(
+            String.format("Unknown order status: %s",value)
+        );
+    }
+
+    @Override
+    public String toString() {
+        return this.value;
+    }
 
     public boolean canChangeTo(OrderStatus next) {
         return switch (this) {
