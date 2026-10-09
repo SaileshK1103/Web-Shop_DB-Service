@@ -5,6 +5,10 @@ import com.webshop.dto.OrderResponse;
 import com.webshop.dto.OrderStatusRequest;
 import com.webshop.entity.OrderStatus;
 import com.webshop.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -20,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/orders")
+@Tag(name = "Orders")
 public class OrderController {
 
     private final OrderService orderService;
@@ -44,6 +49,11 @@ public class OrderController {
     }
 
     @PostMapping
+    @Operation(summary = "Place an order", tags = {"Orders"})
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Order created"),
+        @ApiResponse(responseCode = "409", description = "Conflict / Insufficient stock")
+    })
     public ResponseEntity<OrderResponse> create(@Valid @RequestBody OrderRequest request) {
         OrderResponse created = orderService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
