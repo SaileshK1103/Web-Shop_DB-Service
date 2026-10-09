@@ -31,6 +31,16 @@ public class Product {
     @JoinColumn(name = "supplier_id")
     private Supplier supplier;
 
+    // Replaces the stock triggers: a negative stock is rejected before every insert and update
+    @PrePersist
+    @PreUpdate
+    void rejectNegativeStock() {
+        if (stockQuantity != null && stockQuantity < 0) {
+            throw new IllegalStateException(String.format(
+                    "Stock quantity cannot be negative: %d for product %s", stockQuantity, name));
+        }
+    }
+
     public Product() {}
 
     public Product(String name, String description, BigDecimal price, Integer stockQuantity) {
